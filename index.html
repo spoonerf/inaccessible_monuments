@@ -30,23 +30,41 @@
       #map-title {
         position: absolute;
         top: 10px;
-        right: 10px; /* Move to the top-right corner */
+        right: 10px;
         background: rgba(255, 255, 255, 0.9);
         padding: 10px;
         border-radius: 5px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         z-index: 1000;
-        text-align: right; /* Align text to the right */
+        text-align: right;
+        max-width: 300px; /* Limit the box width */
+        word-wrap: break-word; /* Ensure long text breaks into multiple lines */
       }
       #map-title h1 {
         margin: 0;
-        font-size: 20px;
+        font-size: 16px;
         color: #333;
       }
       #map-title p {
         margin: 5px 0 0;
-        font-size: 14px;
+        font-size: 12px;
         color: #555;
+        line-height: 1.5; /* Better readability for multi-line text */
+      }
+      #reset-zoom {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: white;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+      #reset-zoom:hover {
+        background: #f0f0f0;
       }
     </style>
   </head>
@@ -61,11 +79,16 @@
       </p>
     </div>
 
+    <!-- Reset Zoom Button -->
+    <button id="reset-zoom">Reset Zoom</button>
+
     <!-- Map Container -->
     <div id="map"></div>
 
     <script>
       const map = L.map("map").setView([52.5, -1.2], 7);
+
+      const initialBounds = map.getBounds(); // Save the initial map bounds
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
@@ -109,6 +132,11 @@
         error: function (error) {
           console.error("Error parsing CSV:", error);
         },
+      });
+
+      // Add Reset Zoom Button Functionality
+      document.getElementById("reset-zoom").addEventListener("click", () => {
+        map.fitBounds(initialBounds); // Reset map to its initial bounds
       });
     </script>
   </body>
