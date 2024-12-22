@@ -19,9 +19,51 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+      #map {
+        height: 100vh;
+      }
+      #map-title {
+        position: absolute;
+        top: 10px;
+        right: 10px; /* Move to the top-right corner */
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        text-align: right; /* Align text to the right */
+      }
+      #map-title h1 {
+        margin: 0;
+        font-size: 20px;
+        color: #333;
+      }
+      #map-title p {
+        margin: 5px 0 0;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
   </head>
   <body>
-    <div id="map" style="height: 100vh"></div>
+    <!-- Title and Description -->
+    <div id="map-title">
+      <h1>Inaccessible Scheduled Monuments</h1>
+      <p>
+        Scheduled monuments in England and Wales that have no direct footpaths
+        to them or are not on open access land, according to analysis by Right
+        to Roam.
+      </p>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
     <script>
       const map = L.map("map").setView([52.5, -1.2], 7);
 
@@ -35,39 +77,33 @@
       // Parse CSV with Papa Parse
       Papa.parse("qgis_export_coordinates.csv", {
         download: true,
-        header: true, // Treat the first row as headers
+        header: true,
         skipEmptyLines: true,
         complete: function (results) {
           console.log("Parsed CSV:", results.data);
 
           results.data.forEach((row) => {
-            // Extract lat/lon (assuming correct header names in the CSV)
-            const lat = parseFloat(row.latitude); // Update 'latitude' if the column header differs
+            const lat = parseFloat(row.latitude);
             const lon = parseFloat(row.longitude);
-
-            // Extract name from the "name" column
-            const locationName = row.Name || "Unnamed Location"; // Fallback if 'name' is empty
+            const locationName = row.Name || "Unnamed Location";
             const description = row.description || "";
             const hyperlink = row.hyperlink || null;
+            const fullHyperlink = hyperlink
+              ? `${hyperlink}?section=official-list-entry`
+              : null;
 
-            // Validate lat/lon
             if (!isNaN(lat) && !isNaN(lon)) {
-              // Create the label with optional hyperlink
-              const label = hyperlink
-                ? `<b><a href="${hyperlink}" target="_blank">${locationName}</a></b><br>${description}`
+              const label = fullHyperlink
+                ? `<b><a href="${fullHyperlink}" target="_blank">${locationName}</a></b><br>${description}`
                 : `<b>${locationName}</b><br>${description}`;
 
-              // Create the marker with the popup
               const marker = L.marker([lat, lon]).bindPopup(label);
-
-              // Add marker to the cluster group
               markers.addLayer(marker);
             } else {
               console.warn(`Invalid LatLng for row:`, row);
             }
           });
 
-          // Add the cluster group to the map
           map.addLayer(markers);
         },
         error: function (error) {
